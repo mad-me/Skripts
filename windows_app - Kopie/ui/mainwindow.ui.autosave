@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>320</width>
+    <height>195</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
@@ -19,11 +27,18 @@
        <number>0</number>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page">
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="0">
+        <item row="2" column="1">
+         <widget class="QPushButton" name="btnDbUebersicht">
+          <property name="text">
+           <string>Daten verwalten</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
          <widget class="QPushButton" name="weeklyButton">
           <property name="text">
            <string>wöchentliche Abrechnung</string>

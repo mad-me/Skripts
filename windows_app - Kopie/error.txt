@@ -1,8 +1,0 @@
-Designer: An error has occurred while reading the UI file at line 1, column 0: Premature end of document.
-Traceback (most recent call last):
-  File "C:\EKK\Skripts\windows_app\src\main.py", line 20, in <module>
-    main()
-    ~~~~^^
-  File "C:\EKK\Skripts\windows_app\src\main.py", line 13, in main
-    window = loader.load(ui_file)
-RuntimeError: Unable to open/read ui device

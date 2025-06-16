@@ -87,16 +87,14 @@ def finde_fahrer_in_db(tokens: list[str], conn: sqlite3.Connection) -> Optional[
     print("[DEBUG] Kein Match gefunden")
     return None
 
-import re
-
 def extrahiere_ziffernfolge(text: str) -> str:
     """Entfernt alle Nicht-Ziffern aus dem Text – behält nur die Ziffernfolge."""
     return re.sub(r"\D", "", text or "")
 
-def finde_kennzeichen_per_ziffernfolge(fahrzeug_name: str, conn) -> str:
+def finde_kennzeichen_per_ziffernfolge(fahrzeug: str, conn) -> str:
     # 1. Extrahiere Ziffernfolge wie bisher
-    ziffern = extrahiere_ziffernfolge(fahrzeug_name)
-    print(f"[DEBUG] Ziffern aus '{fahrzeug_name}': {ziffern}")
+    ziffern = extrahiere_ziffernfolge(fahrzeug)
+    print(f"[DEBUG] Ziffern aus '{fahrzeug}': {ziffern}")
 
     # 2. Hole alle Kennzeichen aus der DB
     cursor = conn.cursor()
@@ -106,25 +104,25 @@ def finde_kennzeichen_per_ziffernfolge(fahrzeug_name: str, conn) -> str:
     # 3. Prüfe auf exakten Ziffernmatch wie bisher
     for kennzeichen in kennzeichen_liste:
         if ziffern and ziffern in extrahiere_ziffernfolge(kennzeichen):
-            print(f"[DEBUG] (Ziffern) Match: {fahrzeug_name} → {kennzeichen}")
+            print(f"[DEBUG] (Ziffern) Match: {fahrzeug} → {kennzeichen}")
             return kennzeichen
 
     # 4. Fallback: Fuzzy String Matching (z.B. falls keine Ziffern)
     # Normalisiere beides (z.B. alles klein, ohne Sonderzeichen)
-    normalized_input = normalize_token(fahrzeug_name)
+    normalized_input = normalize_token(fahrzeug)
     for kennzeichen in kennzeichen_liste:
         normalized_kennz = normalize_token(kennzeichen)
         if normalized_input in normalized_kennz or normalized_kennz in normalized_input:
-            print(f"[DEBUG] (Fuzzy) Match: {fahrzeug_name} → {kennzeichen}")
+            print(f"[DEBUG] (Fuzzy) Match: {fahrzeug} → {kennzeichen}")
             return kennzeichen
 
     # 5. Noch ein Fallback: Teilstring-Vergleich, falls gar nichts hilft
     for kennzeichen in kennzeichen_liste:
-        if fahrzeug_name.strip().lower() in kennzeichen.strip().lower():
-            print(f"[DEBUG] (Substring) Match: {fahrzeug_name} → {kennzeichen}")
+        if fahrzeug.strip().lower() in kennzeichen.strip().lower():
+            print(f"[DEBUG] (Substring) Match: {fahrzeug} → {kennzeichen}")
             return kennzeichen
 
-    print(f"[INFO] Kein Kennzeichen für {fahrzeug_name} gefunden.")
+    print(f"[INFO] Kein Kennzeichen für {fahrzeug} gefunden.")
     return None
 
 def finde_fahrzeug_match(combo_fz: str, df_fz_name: str) -> bool:

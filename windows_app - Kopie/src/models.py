@@ -6,22 +6,16 @@ from PySide6.QtGui import QFont
 
 
 class PandasModel(QAbstractTableModel):
-    """
-    Ein Qt-Tabellenmodell, das ein pandas.DataFrame kapselt.
-    Unterstützt beliebige Indizes, die als eigene Spalte (z.B. 'Index') angezeigt werden.
-    Die Zeilen 'Summe' und 'Abrechnung' werden fett dargestellt.
-    """
-
     def __init__(self, df: pd.DataFrame):
         super().__init__()
         df = df.copy()
-        # Spalte 'Index' nach vorne verschieben (falls nicht sowieso schon vorn)
         if "Index" in df.columns:
             cols = ["Index"] + [c for c in df.columns if c != "Index"]
             df = df[cols]
-
+            self._index_labels = list(df["Index"])
+        else:
+            self._index_labels = list(df.index)
         self._df = df.reset_index(drop=True)
-        self._index_labels = list(self._df["Index"])
 
     def rowCount(self, parent=None):
         return self._df.shape[0]
@@ -95,7 +89,7 @@ class DataLoader(QThread):
         data_ready = Signal(pd.DataFrame)
 
         def __init__(self, fahrzeug: str, fahrer: str, parent=None):
-            super().__init__(parent)
+            super().__init__(parent=parent)
             self.fahrzeug = fahrzeug
             self.fahrer  = fahrer
 

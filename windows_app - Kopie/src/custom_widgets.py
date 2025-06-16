@@ -1,45 +1,81 @@
+from utils import center_window
 from PySide6 import QtWidgets, QtCore
 
 class CustomTitleBar(QtWidgets.QWidget):
-    def __init__(self, parent=None, title_text=""):
+    backClicked = QtCore.Signal()
+
+    def __init__(self, parent=None, title_text="", show_back=False):
         super().__init__(parent)
-        self.setFixedHeight(38)
-        self.setStyleSheet("""
-            background-color: #232323;
-            border-top-left-radius: 18px;  
-            border-top-right-radius: 18px;
-        """)
+        self.setFixedHeight(48)  # Passt zur Button-Größe
 
-        layout = QtWidgets.QHBoxLayout(self)
-        layout.setContentsMargins(12, 0, 12, 0)
-        layout.setSpacing(8)
-
-        # Title
-        self.title_label = QtWidgets.QLabel(title_text)
+        # Titel-Label
+        self.title_label = QtWidgets.QLabel(title_text, self)
         self.title_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.title_label.setStyleSheet("color: #e0e0e0; font-size: 16pt; font-weight: bold; letter-spacing: 1px;")
-        layout.addWidget(self.title_label, 1)
+        self.title_label.setStyleSheet(
+            "color: #e0e0e0; font-size: 13pt; font-weight: bold; letter-spacing: 1px; padding: 0; margin: 0;"
+        )
+        self.title_label.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
 
-        # Gemeinsames Button-StyleSheet mit Border!
-        button_style = """
-            QPushButton {
-                background: none;
+        # Layout für die Buttons
+        layout = QtWidgets.QHBoxLayout(self)
+        layout.setContentsMargins(8, 0, 8, 0)
+        layout.setSpacing(6)
+        layout.setAlignment(QtCore.Qt.AlignVCenter)
+
+        button_diameter = 24
+        button_radius = 12
+
+        button_style = f"""
+            QPushButton {{
+                background: transparent;
                 color: #ffd600;
-                font-size: 16pt;
-                border: 1.3px solid #555555;    /* <- zarte Border */
-                border-radius: 7px;
-                padding-left: 0; padding-right: 0;
-            }
-            QPushButton:hover {
+                font-size: 13pt;
+                border: 1.2px solid #555555;
+                border-radius: {button_radius}px;
+                min-width: {button_diameter}px; min-height: {button_diameter}px;
+                max-width: {button_diameter}px; max-height: {button_diameter}px;
+                padding: 0;
+            }}
+            QPushButton:hover {{
                 color: #232323;
                 background: #ffd600;
-                border-color: #ffd600;           /* Bei Hover auch Border in gelb */
-            }
+                border-color: #ffd600;
+            }}
         """
+
+        close_style = f"""
+            QPushButton {{
+                background: transparent;
+                color: #ff3333;
+                font-size: 15pt;
+                border: 1.2px solid #555555;
+                border-radius: {button_radius}px;
+                min-width: {button_diameter}px; min-height: {button_diameter}px;
+                max-width: {button_diameter}px; max-height: {button_diameter}px;
+                padding: 0;
+            }}
+            QPushButton:hover {{
+                color: #fff;
+                background: #c80000;
+                border-color: #ff3333;
+            }}
+        """
+
+        # Back-Button (optional ganz links)
+        self.back_btn = QtWidgets.QPushButton("←")
+        self.back_btn.setFixedSize(button_diameter, button_diameter)
+        self.back_btn.setCursor(QtCore.Qt.PointingHandCursor)
+        self.back_btn.setStyleSheet(button_style)
+        self.back_btn.clicked.connect(self.backClicked.emit)
+        self.back_btn.setVisible(show_back)
+        layout.addWidget(self.back_btn)
+
+        # Stretch, dann Buttons rechts
+        layout.addStretch(1)
 
         # Minimize
         self.min_btn = QtWidgets.QPushButton("-")
-        self.min_btn.setFixedSize(34, 28)
+        self.min_btn.setFixedSize(button_diameter, button_diameter)
         self.min_btn.setCursor(QtCore.Qt.PointingHandCursor)
         self.min_btn.setStyleSheet(button_style)
         self.min_btn.clicked.connect(lambda: self.window().showMinimized())
@@ -47,34 +83,29 @@ class CustomTitleBar(QtWidgets.QWidget):
 
         # Maximize/Restore
         self.max_btn = QtWidgets.QPushButton("□")
-        self.max_btn.setFixedSize(34, 28)
+        self.max_btn.setFixedSize(button_diameter, button_diameter)
         self.max_btn.setCursor(QtCore.Qt.PointingHandCursor)
         self.max_btn.setStyleSheet(button_style)
         self.max_btn.clicked.connect(self.toggle_max_restore)
         layout.addWidget(self.max_btn)
 
-        # Close (extra Farbe im Hover)
+        # Close
         self.close_btn = QtWidgets.QPushButton("×")
-        self.close_btn.setFixedSize(34, 28)
+        self.close_btn.setFixedSize(button_diameter, button_diameter)
         self.close_btn.setCursor(QtCore.Qt.PointingHandCursor)
-        self.close_btn.setStyleSheet("""
-            QPushButton {
-                background: none;
-                color: #ff3333;
-                font-size: 22pt;
-                border: 1.3px solid #555555;
-                border-radius: 7px;
-            }
-            QPushButton:hover {
-                color: #fff;
-                background: #c80000;
-                border-color: #ff3333;
-            }
-        """)
+        self.close_btn.setStyleSheet(close_style)
         self.close_btn.clicked.connect(lambda: self.window().close())
         layout.addWidget(self.close_btn)
 
         self._drag_pos = None
+
+    def resizeEvent(self, event):
+        # Das Titel-Label immer auf volle Fläche ziehen
+        self.title_label.setGeometry(0, 0, self.width(), self.height())
+        return super().resizeEvent(event)
+
+    def setTitle(self, text):
+        self.title_label.setText(text)
 
     def toggle_max_restore(self):
         win = self.window()
@@ -96,13 +127,10 @@ class CustomTitleBar(QtWidgets.QWidget):
     def mouseReleaseEvent(self, event):
         self._drag_pos = None
 
-    def setTitle(self, text):
-        self.title_label.setText(text)
-
 
 class CustomDialog(QtWidgets.QDialog):
     def __init__(self, title="Dialog", parent=None):
-        super().__init__(parent)
+        super().__init__(parent=parent)
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.Window)
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)
 
@@ -133,6 +161,8 @@ class CustomDialog(QtWidgets.QDialog):
 
         # Damit sich das bg_widget immer anpasst:
         self.resizeEvent = self._resize_bg
+
+        QtCore.QTimer.singleShot(0, lambda: center_window(self))
 
     def _resize_bg(self, event):
         self.bg_widget.setGeometry(self.rect())

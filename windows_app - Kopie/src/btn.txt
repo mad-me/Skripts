@@ -1,0 +1,40 @@
+btn_layout = QtWidgets.QHBoxLayout()
+        btn_layout.setSpacing(18)
+        button_style = """
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #444, stop:1 #222);
+                color: #fff;
+                border-radius: 8px;
+                padding: 8px 24px;
+                font-size: 14pt;
+                border: 1.5px solid #232323;
+            }
+            QPushButton:hover {
+                background: #ffd600;
+                color: #232323;
+            }
+        """
+        self.btn_add = QtWidgets.QPushButton("Zeile hinzufügen")
+        self.btn_add.setStyleSheet(button_style)
+        self.btn_delete = QtWidgets.QPushButton("Zeile löschen")
+        self.btn_delete.setStyleSheet(button_style)
+        self.btn_save = QtWidgets.QPushButton("Speichern")
+        self.btn_save.setStyleSheet(button_style)
+        btn_layout.addWidget(self.btn_add)
+        btn_layout.addWidget(self.btn_delete)
+        btn_layout.addWidget(self.btn_save)
+        btn_layout.addStretch(1)
+        layout.addLayout(btn_layout)
+
+        self.stack.addWidget(self.table_page)
+        self.stack.setCurrentIndex(0)
+
+        self.model = None
+        self.df = None
+        self.table_name = None
+        self.active_filters = {}
+
+        self.btn_add.clicked.connect(self.add_row)
+        self.btn_delete.clicked.connect(self.delete_row)
+        self.btn_save.clicked.connect(self.save_changes)
+        self.load_table_list()
